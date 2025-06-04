@@ -4,7 +4,7 @@ author: "Alicia Rich"
 output:
   html_document:
     theme:
-      bootswatch: litera
+      bootswatch: journal
     toc: true
     toc_float:
       collapsed: true
@@ -18,19 +18,18 @@ params:
                      
 ---
 
-```{r global, message = FALSE}
-here::i_am("setup/microbiome/microeco_first_use.Rmd")
-
-global             <- config::get(config = "default")
-
-source(here::here(global$setup))
-
-opts_chunk$set(message = FALSE,
+```{r setup, message = FALSE}
+knitr::opts_chunk$set(message = FALSE,
                warning = FALSE,
                echo    = TRUE,
                include = TRUE,
                eval    = FALSE,
                comment = "")
+
+library(tidyverse)
+library(conflicted)
+library(bslib)
+library(htmltools)
 ```
 
 # Introduction
@@ -46,22 +45,6 @@ Microbiome data analysis has rapidly evolved into a cornerstone of biological an
 The [microeco R package](https://chiliubio.github.io/microeco_tutorial/) provides an elegant and comprehensive solution by integrating many of the most current and popular microbiome analysis approaches into a unified framework. This package simplifies workflows, making it easy to prepare datasets, calculate metrics, and create publication-quality visualizations. Importantly, microeco is designed to work seamlessly with ggplot2 and other widely used R packages, offering flexibility for customization and compatibility with established workflows. If you click the link above, you will find a very comprehensive tutorial presenting the full array of analysis options.  
 
 In this workflow, we will prepare our local hard drive and working directory for use with microeco by properly installing the package and all its dependencies.  
-
-## File Paths
-
-I use the `config` package together with `here` to ensure reproducibility of all the paths called in this script. Below is my current `config.yml` file. This also shows the paths to different files and directories I reference throughout this script relative to the repository home. 
-
-```{r, echo = FALSE, eval = TRUE}
-page_fluid(
-    accordion(
-      open = FALSE,
-      accordion_panel(
-        "Show/Hide External File",
-        tagList(tags$pre(includeText(here("config.yml"))))
-    )
-  )
-)
-```
 
 # Install `MicroEco`
 
@@ -95,40 +78,79 @@ unzip(paste0(tmp, ".zip"))
 
 ### Install Downloaded Packages *in the Following Order*
 
+#### SpiecEasi
+
 ```{r, eval = FALSE}
-devtools::install_local(paste0(tmp, "/", "SpiecEasi-master.zip"), dependencies = TRUE)
+devtools::install_local("microeco_dependence/SpiecEasi-master.zip", dependencies = TRUE)
+```
+
+<details>
+  <summary>If this fails and you are on a mac, you may need to go through a special build process.</summary>
+
+1.  Install Xcode Command‐Line Tools
+
+```{terminal}
+xcode-select --install
+```
+
+2.  Install Homebrew (if needed) and GCC / gfortran
+
+```{terminal}
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install gcc
+```
+
+3.  Edit ~/.R/Makevars to point FC, F77, and FLIBS to Homebrew’s gfortran-X (where “X” matches your GCC version). For example:
+
+```{terminal}
+cd ~
+brew --prefix gcc
+ls /opt/homebrew/opt/gcc/lib/gcc
+nano ~/.R/Makevars
+```
+
+
+```{makefile}
+FC  = /opt/homebrew/bin/gfortran-15
+F77 = /opt/homebrew/bin/gfortran-15
+FLIBS = -L/opt/homebrew/lib/gcc/15 -lgfortran -lquadmath -lm
+```
+
+4.  Restart R (or RStudio) so it picks up your updated Makevars.
+
+5.  Re‐run the install code at the beginning.
+</details>
+
+```{r, eval = FALSE}
+devtools::install_local("microeco_dependence/mixedCCA-master.zip", dependencies = TRUE)
 ```
 
 ```{r, eval = FALSE}
-devtools::install_local(paste0(tmp, "/", "mixedCCA-master.zip"), dependencies = TRUE)
+devtools::install_local("microeco_dependence/SPRING-master.zip", dependencies = TRUE)
 ```
 
 ```{r, eval = FALSE}
-devtools::install_local(paste0(tmp, "/", "SPRING-master.zip"), dependencies = TRUE)
+devtools::install_local("microeco_dependence/NetCoMi-main.zip", repos = BiocManager::repositories())
 ```
 
 ```{r, eval = FALSE}
-devtools::install_local(paste0(tmp, "/", "NetCoMi-main.zip"), repos = BiocManager::repositories())
+devtools::install_local("microeco_dependence/beem-static-master.zip", dependencies = TRUE)
 ```
 
 ```{r, eval = FALSE}
-devtools::install_local(paste0(tmp, "/", "beem-static-master.zip"), dependencies = TRUE)
+devtools::install_local("microeco_dependence/chorddiag-master.zip", dependencies = TRUE)
 ```
 
 ```{r, eval = FALSE}
-devtools::install_local(paste0(tmp, "/", "chorddiag-master.zip"), dependencies = TRUE)
+devtools::install_local("microeco_dependence/ggradar-master.zip", dependencies = TRUE)
 ```
 
 ```{r, eval = FALSE}
-devtools::install_local(paste0(tmp, "/", "ggradar-master.zip"), dependencies = TRUE)
+devtools::install_local("microeco_dependence/ggnested-main.zip", dependencies = TRUE)
 ```
 
 ```{r, eval = FALSE}
-devtools::install_local(paste0(tmp, "/", "ggnested-main.zip"), dependencies = TRUE)
-```
-
-```{r, eval = FALSE}
-devtools::install_local(paste0(tmp, "/", "ggcor-1-master.zip"), dependencies = TRUE)
+devtools::install_local("microeco_dependence/ggcor-1-master.zip", dependencies = TRUE)
 ```
 
 ## Tax4Fun2 Dependencies
@@ -149,9 +171,6 @@ I also recommend you check on the [instructions in the microeco tutorial](https:
 - Run the chunk below to extract all files.  
 
 ```{terminal, eval = TRUE, echo = FALSE}
-
-cd "setup/microbiome"
-
 tar -xvzf Tax4Fun2_ReferenceData_v2.tar.gz
 ```
 
@@ -162,8 +181,6 @@ tar -xvzf Tax4Fun2_ReferenceData_v2.tar.gz
 Run the following code in your terminal from the same directory as the last step:
 
 ```{terminal, eval = TRUE, echo = FALSE}
-cd "setup/microbiome"
-
 curl -O ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.16.0+-aarch64-macosx.tar.gz
 
 tar -xvzf ncbi-blast-2.16.0+-aarch64-macosx.tar.gz
@@ -174,8 +191,6 @@ tar -xvzf ncbi-blast-2.16.0+-aarch64-macosx.tar.gz
 - Run the following chunk from the same directory again:
 
 ```{terminal, eval = TRUE, echo = FALSE}
-cd "setup/microbiome"
-
 chmod 755 ncbi-blast-2.16.0+/bin/*
   
 chmod -R 755 Tax4Fun2_ReferenceData_v2/*
@@ -218,7 +233,35 @@ install.packages("doMC")
 install.packages("lokern")
 install.packages("monomvn")
 install.packages("pspline")
+install.packages("seqinr", dependencies = TRUE)
 devtools::install_github('csb5/beem')
 ```
 
+## Bioconductor Packages
+
+```{r}
+install.packages("file2meco", repos = BiocManager::repositories())
+install.packages("MicrobiomeStat", repos = BiocManager::repositories())
+install.packages("WGCNA", repos = BiocManager::repositories())
+```
+
+
+```{r}
+BiocManager::install("ggtree")
+```
+
+
+```{r}
+BiocManager::install("metagenomeSeq")
+```
+
+
+```{r}
+BiocManager::install("ALDEx2")
+```
+
+
+```{r}
+BiocManager::install("ANCOMBC")
+```
 
