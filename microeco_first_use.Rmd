@@ -264,4 +264,44 @@ BiocManager::install("ALDEx2")
 ```{r}
 BiocManager::install("ANCOMBC")
 ```
+# `mecodev` Package
+
+
+```{r}
+# For linux or mac
+install.packages("doMC")
+```
+
+
+```{r}
+# Then install the following packages
+install.packages("lokern")
+```
+
+
+```{r}
+install.packages("monomvn")
+```
+
+
+```{r}
+install.packages("pspline")
+```
+
+
+# `mecoturn` Package
+
+```{r}
+install.packages("mecoturn")
+```
+
+```{r}
+# check and install dependent packages
+packages <- c("agricolae")
+for(x in packages){
+    if(!require(x, character.only = TRUE)){
+        install.packages(x)
+    }
+}
+```
 
