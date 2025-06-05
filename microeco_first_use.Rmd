@@ -6,15 +6,7 @@ output:
     theme:
       bootswatch: journal
     toc: true
-    toc_float:
-      collapsed: true
-      smooth_scroll: true
-    code_folding: "show"
-    fig_caption: true
-    df_print: paged
-params:
-  sampleset: "loris"
-  seqrun: "hdz18"
+    toc_float: true
                      
 ---
 
@@ -100,13 +92,22 @@ xcode-select --install
 brew install gcc
 ```
 
+3.a. Make sure ~/.R exists
+
+```{terminal}
+ls -a | grep '\.R'
+mkdir .R
+cd .R
+```
+
+
 3.  Edit ~/.R/Makevars to point FC, F77, and FLIBS to Homebrew’s gfortran-X (where “X” matches your GCC version). For example:
 
 ```{terminal}
 cd ~
 brew --prefix gcc
 ls /opt/homebrew/opt/gcc/lib/gcc
-nano ~/.R/Makevars
+nano Makevars
 ```
 
 
@@ -229,11 +230,31 @@ devtools::install_github("ChiLiubio/mecodev")
 ```{r, eval = FALSE}
 # For linux or mac
 install.packages("doMC")
+```
+
+
+```{r, eval = FALSE}
 # Then install the following packages
 install.packages("lokern")
+```
+
+
+```{r, eval = FALSE}
 install.packages("monomvn")
+```
+
+
+```{r, eval = FALSE}
 install.packages("pspline")
+```
+
+
+```{r, eval = FALSE}
 install.packages("seqinr", dependencies = TRUE)
+```
+
+
+```{r, eval = FALSE}
 devtools::install_github('csb5/beem')
 ```
 
@@ -241,7 +262,15 @@ devtools::install_github('csb5/beem')
 
 ```{r}
 install.packages("file2meco", repos = BiocManager::repositories())
+```
+
+
+```{r}
 install.packages("MicrobiomeStat", repos = BiocManager::repositories())
+```
+
+
+```{r}
 install.packages("WGCNA", repos = BiocManager::repositories())
 ```
 
@@ -265,12 +294,6 @@ BiocManager::install("ALDEx2")
 BiocManager::install("ANCOMBC")
 ```
 # `mecodev` Package
-
-
-```{r}
-# For linux or mac
-install.packages("doMC")
-```
 
 
 ```{r}
